@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<title>ETS 2 Radio</title>
+	<script src="inc/js/jquery.min.js"></script>
+	<link href="inc/css/select2.min.css" rel="stylesheet" />
+	<script src="inc/js/select2.min.js"></script>
+	<script src="inc/js/bootbox.min.js"></script>
+	<link rel="stylesheet" href="inc/css/bootstrap.min.css" />
+	<script src="inc/js/bootstrap.min.js"></script>
+	<link rel="stylesheet" href="inc/css/bootstrap-table.min.css" />
+	<script src="inc/js/bootstrap-table.min.js"></script>
+	<script src="inc/js/setOps.js"></script>
+	<script src="inc/js/css.escape.js"></script>
+
+	<style>
+		a.button {
+		  display: inline-block;
+		  font-family: arial,sans-serif;
+		  font-size: 13px;
+		  font-weight: bold;
+		  color: rgb(68,68,68);
+		  text-decoration: none;
+		  user-select: none;
+		  padding: 5px 18px;
+		  outline: none;
+		  border: 1px solid rgba(0,0,0,.1);
+		  border-radius: 2px;
+		  background: rgb(245,245,245) linear-gradient(#f4f4f4, #f1f1f1);
+		  transition: all .218s ease 0s;
+		}
+		a.button:hover {
+		  color: rgb(24,24,24);
+		  border: 1px solid rgb(198,198,198);
+		  background: #f7f7f7 linear-gradient(#f7f7f7, #f1f1f1);
+		  box-shadow: 0 1px 2px rgba(0,0,0,.1);
+		}
+		a.button:active {
+		  color: rgb(51,51,51);
+		  border: 1px solid rgb(204,204,204);
+		  background: rgb(238,238,238) linear-gradient(rgb(238,238,238), rgb(224,224,224));
+		  box-shadow: 0 1px 2px rgba(0,0,0,.1) inset;
+		}
+		div#selector {
+			position: absolute;
+			top:50%;
+			left:50%;
+			padding:15px;
+			-ms-transform: translateX(-50%) translateY(-50%);
+			-webkit-transform: translate(-50%,-50%);
+			transform: translate(-50%,-50%);
+			text-rendering: geometricPrecision;
+		}
+		div#info {
+			position: absolute;
+			top: 42%;
+			left: 50%;
+			color: #dedede;
+			padding: 15px;
+			width: max-content;
+			-ms-transform: translateX(-50%) translateY(-50%);
+			-webkit-transform: translate(-50%,-50%);
+			transform: translate(-50%,-50%);
+			text-rendering: geometricPrecision;
+		}
+		body{
+			font-family: "Arial", sans-serif;
+			margin: 0;
+			padding: 0;
+		}
+		#pixie
+		{
+			position:fixed;
+			background-color: #164979;
+			filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#040429', endColorstr='#257EB7',GradientType=0 ); /* IE6-9 */
+			background: -ms-linear-gradient(top,  #0E2A55 40%,#0E2A55 40%,#1D6196 60%); /* IE10+ */
+			background: -webkit-gradient(linear, center top, center bottom, from(#040429), to(#257EB7)); /* Chrome, Safari 4+ */
+			background: -webkit-linear-gradient(center top , #040429, #257EB7) repeat scroll 0 0 rgba(0, 0, 0, 0); /* Chrome 10-25, iOS 5+, Safari 5.1+ */
+			background:    -moz-linear-gradient(center top , #040429, #257EB7) repeat scroll 0 0 rgba(0, 0, 0, 0); /* Firefox 3.6-15 */
+			background:      -o-linear-gradient(center top , #040429, #257EB7) repeat scroll 0 0 rgba(0, 0, 0, 0); /* Opera 11.10-12.00 */
+			background:         linear-gradient(center top , #040429, #257EB7) repeat scroll 0 0 rgba(0, 0, 0, 0); /* Chrome 26, Firefox 16+, IE 10+, Opera 12.10+ */
+			margin:0;
+			padding:0;
+			background-size: 100% 100%;
+		}
+		.table {
+			table-layout: fixed;
+			word-wrap: break-word;
+		}
+		.playRow {
+			width: 56px;
+		}
+		#translate {
+			position: absolute;
+			right: 25px;
+			bottom: 15px;
+		}
+
+		#translate img {
+			height: 30px;
+			opacity: 0.6;
+			width: 30px;
+			margin-right: 10px;
+		}
+
+		#translate img:hover {
+			opacity: 1;
+			cursor: pointer;
+			transform: scale(1.5,1.5);
+		}
+
+
+		/* Absolute Center Spinner */
+		.loading {
+		  position: fixed;
+		  z-index: 999;
+		  height: 2em;
+		  width: 2em;
+		  overflow: show;
+		  margin: auto;
+		  top: 0;
+		  left: 0;
+		  bottom: 0;
+		  right: 0;
+		}
+
+		/* Transparent Overlay */
+		.loading:before {
+		  content: '';
+		  display: block;
+		  position: fixed;
+		  top: 0;
+		  left: 0;
+		  width: 100%;
+		  height: 100%;
+		    background: radial-gradient(rgba(20, 20, 20,.8), rgba(0, 0, 0, .8));
+
+		  background: -webkit-radial-gradient(rgba(20, 20, 20,.8), rgba(0, 0, 0,.8));
+		}
+
+		/* :not(:required) hides these rules from IE9 and below */
+		.loading:not(:required) {
+		  /* hide "loading..." text */
+		  font: 0/0 a;
+		  color: transparent;
+		  text-shadow: none;
+		  background-color: transparent;
+		  border: 0;
+		}
+
+		.loading:not(:required):after {
+		  content: '';
+		  display: block;
+		  font-size: 10px;
+		  width: 1em;
+		  height: 1em;
+		  margin-top: -0.5em;
+		  -webkit-animation: spinner 150ms infinite linear;
+		  -moz-animation: spinner 150ms infinite linear;
+		  -ms-animation: spinner 150ms infinite linear;
+		  -o-animation: spinner 150ms infinite linear;
+		  animation: spinner 150ms infinite linear;
+		  border-radius: 0.5em;
+		  -webkit-box-shadow: rgba(255,255,255, 0.75) 1.5em 0 0 0, rgba(255,255,255, 0.75) 1.1em 1.1em 0 0, rgba(255,255,255, 0.75) 0 1.5em 0 0, rgba(255,255,255, 0.75) -1.1em 1.1em 0 0, rgba(255,255,255, 0.75) -1.5em 0 0 0, rgba(255,255,255, 0.75) -1.1em -1.1em 0 0, rgba(255,255,255, 0.75) 0 -1.5em 0 0, rgba(255,255,255, 0.75) 1.1em -1.1em 0 0;
+		box-shadow: rgba(255,255,255, 0.75) 1.5em 0 0 0, rgba(255,255,255, 0.75) 1.1em 1.1em 0 0, rgba(255,255,255, 0.75) 0 1.5em 0 0, rgba(255,255,255, 0.75) -1.1em 1.1em 0 0, rgba(255,255,255, 0.75) -1.5em 0 0 0, rgba(255,255,255, 0.75) -1.1em -1.1em 0 0, rgba(255,255,255, 0.75) 0 -1.5em 0 0, rgba(255,255,255, 0.75) 1.1em -1.1em 0 0;
+		}
+
+		/* Animation */
+
+		@-webkit-keyframes spinner {
+		  0% {
+		    -webkit-transform: rotate(0deg);
+		    -moz-transform: rotate(0deg);
+		    -ms-transform: rotate(0deg);
+		    -o-transform: rotate(0deg);
+		    transform: rotate(0deg);
+		  }
+		  100% {
+		    -webkit-transform: rotate(360deg);
+		    -moz-transform: rotate(360deg);
+		    -ms-transform: rotate(360deg);
+		    -o-transform: rotate(360deg);
+		    transform: rotate(360deg);
+		  }
+		}
+		@-moz-keyframes spinner {
+		  0% {
+		    -webkit-transform: rotate(0deg);
+		    -moz-transform: rotate(0deg);
+		    -ms-transform: rotate(0deg);
+		    -o-transform: rotate(0deg);
+		    transform: rotate(0deg);
+		  }
+		  100% {
+		    -webkit-transform: rotate(360deg);
+		    -moz-transform: rotate(360deg);
+		    -ms-transform: rotate(360deg);
+		    -o-transform: rotate(360deg);
+		    transform: rotate(360deg);
+		  }
+		}
+		@-o-keyframes spinner {
+		  0% {
+		    -webkit-transform: rotate(0deg);
+		    -moz-transform: rotate(0deg);
+		    -ms-transform: rotate(0deg);
+		    -o-transform: rotate(0deg);
+		    transform: rotate(0deg);
+		  }
+		  100% {
+		    -webkit-transform: rotate(360deg);
+		    -moz-transform: rotate(360deg);
+		    -ms-transform: rotate(360deg);
+		    -o-transform: rotate(360deg);
+		    transform: rotate(360deg);
+		  }
+		}
+		@keyframes spinner {
+		  0% {
+		    -webkit-transform: rotate(0deg);
+		    -moz-transform: rotate(0deg);
+		    -ms-transform: rotate(0deg);
+		    -o-transform: rotate(0deg);
+		    transform: rotate(0deg);
+		  }
+		  100% {
+		    -webkit-transform: rotate(360deg);
+		    -moz-transform: rotate(360deg);
+		    -ms-transform: rotate(360deg);
+		    -o-transform: rotate(360deg);
+		    transform: rotate(360deg);
+		  }
+		}
+
+	</style>
+</head>
+<body>
+	<div class="loading">Loading&#8230;</div>
+	<canvas id="pixie"></canvas>
+	<div id="info">
+		<p>Download the file and put the file into the folder: "<b>Documents\Euro Truck Simulator 2</b>".</p>
+	</div>
+	<div id="selector">
+		<select id="countries">
+			<option disabled="disabled" selected="selected"></option>
+		</select>
+		<a href="#" id="edit" class="button">Edit list</a>
+		<a href="#" id="download" class="button">Download</a>
+	</div>
+	<audio id="radio" src="" hidden></audio>
+	<div id="translate">
+		<img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDkgNiIgd2lkdGg9IjkwMCIgaGVpZ2h0PSI2MDAiPjxyZWN0IGZpbGw9IiNmZmYiIHdpZHRoPSI5IiBoZWlnaHQ9IjMiLz48cmVjdCBmaWxsPSIjZDUyYjFlIiB5PSIzIiB3aWR0aD0iOSIgaGVpZ2h0PSIzIi8+PHJlY3QgZmlsbD0iIzAwMzlhNiIgeT0iMiIgd2lkdGg9IjkiIGhlaWdodD0iMiIvPjwvc3ZnPg==" alt="ru">
+		<img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHdpZHRoPSIxMjM1IiBoZWlnaHQ9IjY1MCIgdmlld0JveD0iMCAwIDc0MTAgMzkwMCI+PHJlY3Qgd2lkdGg9Ijc0MTAiIGhlaWdodD0iMzkwMCIgZmlsbD0iI2IyMjIzNCIvPjxwYXRoIGQ9Ik0wLDQ1MEg3NDEwbTAsNjAwSDBtMCw2MDBINzQxMG0wLDYwMEgwbTAsNjAwSDc0MTBtMCw2MDBIMCIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjMwMCIvPjxyZWN0IHdpZHRoPSIyOTY0IiBoZWlnaHQ9IjIxMDAiIGZpbGw9IiMzYzNiNmUiLz48ZyBmaWxsPSIjZmZmIj48ZyBpZD0iczE4Ij48ZyBpZD0iczkiPjxnIGlkPSJzNSI+PGcgaWQ9InM0Ij48cGF0aCBpZD0icyIgZD0iTTI0Nyw5MCAzMTcuNTM0MjMwLDMwNy4wODIwMzkgMTMyLjg3MzIxOCwxNzIuOTE3OTYxSDM2MS4xMjY3ODJMMTc2LjQ2NTc3MCwzMDcuMDgyMDM5eiIvPjx1c2UgeGxpbms6aHJlZj0iI3MiIHk9IjQyMCIvPjx1c2UgeGxpbms6aHJlZj0iI3MiIHk9Ijg0MCIvPjx1c2UgeGxpbms6aHJlZj0iI3MiIHk9IjEyNjAiLz48L2c+PHVzZSB4bGluazpocmVmPSIjcyIgeT0iMTY4MCIvPjwvZz48dXNlIHhsaW5rOmhyZWY9IiNzNCIgeD0iMjQ3IiB5PSIyMTAiLz48L2c+PHVzZSB4bGluazpocmVmPSIjczkiIHg9IjQ5NCIvPjwvZz48dXNlIHhsaW5rOmhyZWY9IiNzMTgiIHg9Ijk4OCIvPjx1c2UgeGxpbms6aHJlZj0iI3M5IiB4PSIxOTc2Ii8+PHVzZSB4bGluazpocmVmPSIjczUiIHg9IjI0NzAiLz48L2c+PC9zdmc+" alt="en">
+	</div>
+	<script>
+
+		var langList = {
+			ru: {
+				info: '<p>Скачайте файл и поместите в папку: "<b>Документы\\Euro Truck Simulator 2</b>" с заменой.</p>',
+				loading: "Загрузка стран...",
+				edit: "Редактировать",
+				editing: "Редактирование списка",
+				download: "Скачать",
+				select: "Выберите страну...",
+				check: "Выбрать всё",
+				uncheck: "Отменить всё",
+				stop: "Выкл.",
+				play: "Восп.",
+				name: "Название",
+				genre: "Жанр",
+				country: "Язык",
+				bitrate: "Битрейт"
+			},
+			en:{
+				info: '<p>Download the file and put the file into the folder: "<b>Documents\\Euro Truck Simulator 2</b>".',
+				loading: "Country list is loading...",
+				edit: "Edit list",
+				editing: "Editing the list",
+				download: "Download",
+				select: "Select the country...",
+				check: "Check all",
+				uncheck: "Uncheck all",
+				stop: "Stop",
+				play: "Play",
+				name: "Name",
+				genre: "Genre",
+				country: "Language",
+				bitrate: "Bitrate"
+			}
+		}
+
+		var l_lang;
+		if (navigator.userLanguage) {// Explorer
+			l_lang = navigator.userLanguage;
+		}
+		else if (navigator.language){ // FF
+			l_lang = navigator.language;
+		}
+		else{
+			l_lang = "en";
+		}
+
+		var lang = l_lang.slice(0,2) === "ru" ? langList.ru : langList.en;
+
+		$.fn.bootstrapTable.locales["ru-RU"] = {
+			formatLoadingMessage: function() {
+				return "Пожалуйста, подождите, идёт загрузка..."
+			},
+			formatRecordsPerPage: function(a) {
+				return a + " записей на страницу"
+			},
+			formatShowingRows: function(a, b, c) {
+				return "Записи с " + a + " по " + b + " из " + c
+			},
+			formatSearch: function() {
+				return "Поиск"
+			},
+			formatNoMatches: function() {
+				return "Ничего не найдено"
+			},
+			formatRefresh: function() {
+				return "Обновить"
+			},
+			formatToggle: function() {
+				return "Переключить"
+			},
+			formatColumns: function() {
+				return "Колонки"
+			},
+			formatClearFilters: function() {
+				return "Очистить фильтры"
+			}
+		};
+
+		function translate(language){
+			$.extend($.fn.bootstrapTable.defaults, $.fn.bootstrapTable.locales[language == "ru" ? "ru-RU" : "en-US"]);
+			lang = language === "ru" ? langList.ru : langList.en;
+			$("#info p").html(lang.info);
+			if($("select option").length > 50) {
+				$('select option:first')[0].textContent = lang.select;
+				$('select').select2();
+			}
+			else {
+				$('select option:first')[0].textContent = lang.loading;
+			}
+			$("#edit").text(lang.edit);
+			$("#download").text(lang.download);
+		}
+
+		$("#translate img").on("click", function(evt){
+			translate($(this).attr("alt"));
+		});
+
+		translate(l_lang.slice(0,2));
+		$('#radio')[0].volume = 0.25;
+
+		var radioStations,
+		selections = [],
+		_ = setOps,
+		lastCountry = 0,
+		data; 
+		$.get("https://de1.api.radio-browser.info/json/countrycodes").done(function(res){ //https://cors-anywhere.herokuapp.com/http://cdn2.radio.garden/
+			res.forEach(function(country){
+				$("#countries").append($("<option>", {text: codeToName[country.name], value: country.name})); // + " (" + country.stationcount + ")"
+			});
+			$('select option:first')[0].textContent = lang.select;
+			$('select').select2();
+			$(".loading").hide();
+		});
+
+		$('select').on("change", function(evt) {
+			$(".loading").show();
+			$.get('https://de1.api.radio-browser.info/json/stations/search?order=votes&reverse=true&codec=MP3&hidebroken=true&countrycode=' + evt.target.value).done(function(res) {
+				res.forEach(function(radio) {
+					radio.name = radio.name.trim().replace(/"/g,"'").replace(/\|/, "ǀ");
+					if(radio.bitrate > 1000) radio.bitrate /= 1000;
+					radio.tags = radio.tags.split(",").slice(0,3).join();
+					radio.lang = radio.languagecodes.toUpperCase() || radio.countrycode;
+				});
+				radioStations = res;
+				$(".loading").hide();
+			});
+		});
+
+		$("#download").on("click", function(){
+			if($("#countries").val() === null) {
+				return alert(lang.select);
+			}
+			if(selections.length > 0){
+				radioList = selections.map(function(id){return data[id];});
+				output = "SiiNunit\n{\nlive_stream_def : .live_streams {\n";
+				radioList.forEach(function(r,i){
+					output += ' stream_data[' + i + ']: "' + r.url + '|' + r.name + '|' + r.genre + '|' + r.country + '|' + r.bitrate + '"\r\n';
+				});
+				output += "}\n}";
+				download(output, "live_streams.sii", "text/plain");
+				return;
+			}
+			output = "SiiNunit\n{\nlive_stream_def : .live_streams {\n";
+			radioStations.forEach(function(r,i){
+				output += ' stream_data[' + i + ']: "' + r.url_resolved + '|' + r.name + '|' + r.tags + '|' + r.lang + '|' + r.bitrate + '"\r\n';
+			});
+			output += "}\n}";
+			download(output, "live_streams.sii", "text/plain");
+		});
+
+		$("#edit").on("click", function() {
+			if($("#countries").val() === null) {
+				return alert(lang.select);
+			}
+			var dialog = bootbox.dialog({
+				title: lang.editing,
+				message: '<div id="toolbar">'+
+							'<div class="form-inline" role="form">'+
+								'<button id="cAll" type="submit" class="btn btn-default">'+lang.check+'</button>&nbsp;&nbsp;'+
+								'<button id="uncAll" type="submit" class="btn btn-default">'+lang.uncheck+'</button>&nbsp;&nbsp;'+
+								'<button id="stopSound" type="submit" class="btn btn-default">'+lang.stop+'</button>&nbsp;&nbsp;'+
+								'<input id="playerVol" type="range" min="0" max="1" step="0.01" value="'+$('#radio')[0].volume+'" style="display: inline;width: 140px;top: 4px;position: relative;">'+
+							'</div>'+
+						'</div>'+
+						'<table id="table"'+
+							   'data-toggle="table"'+
+							   'data-pagination="true"'+
+							   'data-search="true"'+
+							   'data-toolbar="#toolbar">'+
+							'<thead>'+
+							'<tr>'+
+								'<th data-field="state" data-checkbox="true"></th>'+
+								'<th data-field="play" class="playRow">'+lang.play+'</th>'+
+								'<th data-field="name">'+lang.name+'</th>'+
+								'<th data-field="genre">'+lang.genre+'</th>'+
+								'<th data-field="country">'+lang.country+'</th>'+
+								'<th data-field="bitrate">'+lang.bitrate+'</th>'+
+							'</tr>'+
+							'</thead>'+
+						'</table>',
+				size: 'large'
+			});
+			var radioList = [];
+			var counter = 0;
+			var playB = '<button onclick="playRadio(this.attributes.data.value, this)" data="URL_HERE" type="button" class="btn btn-info btn-xs">'+
+							'&nbsp;<span class="glyphicon glyphicon-play" aria-hidden="true"></span>&nbsp;'+
+						'</button>';
+			for(var radio in radioStations) {
+				radio = radioStations[radio];
+				radioList.push({id: counter++, play: playB.replace("URL_HERE", radio.url_resolved), url: radio.url_resolved, name: radio.name, genre: radio.tags, country: radio.lang, bitrate: radio.bitrate});
+			}
+			var $table = $('#table');
+			$('#table').bootstrapTable({
+				onPreBody: function (rows) {
+					renderHandler(rows);
+				},
+				onPageChange: function(){
+					var radioEl = $("#radio")[0];
+					if(!radioEl.paused){
+						$('button[data=' + CSS.escape(radioEl.currentSrc) + ']').find('span').removeClass("glyphicon-play").addClass("glyphicon-stop");
+					}
+				}
+			});
+			$table.on('check.bs.table check-all.bs.table ' +
+					'uncheck.bs.table uncheck-all.bs.table', function (e, rows) {
+				var ids;
+				if($.inArray(e.type, ['check', 'uncheck']) > -1){
+					ids = $.map(!$.isArray(rows) ? [rows] : rows, function (row) {
+						return row.id;
+					});
+				}
+				else{
+					var opt = $table.bootstrapTable('getOptions');
+					if(opt.searchText.length > 0){
+						ids = $table.bootstrapTable('getData').slice(opt.pageSize * (opt.pageNumber - 1), opt.pageNumber*opt.pageSize).map(function(row){return row.id})
+					}
+					else{
+						ids = $('tr[data-index]').map(function(key, el){
+							return $(el).data('index');
+						});
+						ids = Array.apply({}, ids);
+					}
+				}
+				var func = $.inArray(e.type, ['check', 'check-all']) > -1 ? 'union' : 'difference';
+				selections = _[func](selections, ids);
+			});
+			$table.bootstrapTable('load', radioList);
+
+			$table.bootstrapTable("getOptions").onPageChange();
+
+			data = radioList;
+			$("#cAll").on('click', function(){
+				$table.bootstrapTable('checkAll');
+				selections = $table.bootstrapTable('getData').map(function(row){return row.id});
+			});
+			$("#uncAll").on('click', function(){
+				$table.bootstrapTable('uncheckAll');
+				selections = [];
+			});
+			$("#stopSound").on('click', function(){
+				$("#radio")[0].pause();
+				$('.glyphicon-stop').removeClass("glyphicon-stop").addClass("glyphicon-play");
+			});
+			$("#playerVol").on("mousemove", function(evt) {
+				$("#radio")[0].volume = evt.target.value;
+			});
+		});
+
+		function download(data, filename, type) {
+			var file = new Blob([data], {type: type});
+			if (window.navigator.msSaveOrOpenBlob) // IE10+
+				window.navigator.msSaveOrOpenBlob(file, filename);
+			else { // Others
+				var a = document.createElement("a"),
+						url = URL.createObjectURL(file);
+				a.href = url;
+				a.download = filename;
+				document.body.appendChild(a);
+				a.click();
+				setTimeout(function() {
+					document.body.removeChild(a);
+					window.URL.revokeObjectURL(url);  
+				}, 0); 
+			}
+		}
+
+		function renderHandler(rows) {
+			$.each(rows, function (i, row) {
+				row.state = $.inArray(row.id, selections) !== -1;
+			});
+			return rows;
+		}
+
+		function playRadio(url, el){
+			var spanIcon = $(el).find('span');
+			if(spanIcon.hasClass("glyphicon-stop")){
+				$("#radio")[0].pause();
+				spanIcon.removeClass("glyphicon-stop").addClass("glyphicon-play");
+				return;
+			}
+			$('.glyphicon-stop').removeClass("glyphicon-stop").addClass("glyphicon-play");
+			spanIcon.removeClass("glyphicon-play").addClass("glyphicon-stop");
+			var radio = $("#radio")[0];
+			radio.pause();
+			radio.src = url;
+			radio.load();
+			var prom = radio.play();
+			if(prom != undefined){
+				prom.then(console.log).catch(console.log);
+			}
+		}
+
+		function draw() { con.clearRect(0, 0, WIDTH, HEIGHT); for (var e = 0; e < pxs.length; e++) { pxs[e].fade(); pxs[e].move(); pxs[e].draw() } } window.addEventListener('resize', function() { WIDTH = window.innerWidth; HEIGHT = window.innerHeight; canvas = document.getElementById("pixie"); $(canvas).attr("width", WIDTH).attr("height", HEIGHT); }, false); function Circle() { WIDTH = window.innerWidth; HEIGHT = window.innerHeight; this.s = { ttl: 8e3, xmax: 5, ymax: 2, rmax: 10, rt: 1, xdef: 960, ydef: 540, xdrift: 4, ydrift: 4, random: true, blink: true }; this.reset = function () { this.x = this.s.random ? WIDTH * Math.random() : this.s.xdef; this.y = this.s.random ? HEIGHT * Math.random() : this.s.ydef; this.r = (this.s.rmax - 1) * Math.random() + 1; this.dx = Math.random() * this.s.xmax * (Math.random() < .5 ? -1 : 1); this.dy = Math.random() * this.s.ymax * (Math.random() < .5 ? -1 : 1); this.hl = this.s.ttl / rint * (this.r / this.s.rmax); this.rt = Math.random() * this.hl; this.s.rt = Math.random() + 1; this.stop = Math.random() * .2 + .4; this.s.xdrift *= Math.random() * (Math.random() < .5 ? -1 : 1); this.s.ydrift *= Math.random() * (Math.random() < .5 ? -1 : 1) }; this.fade = function () { this.rt += this.s.rt }; this.draw = function () { if (this.s.blink && (this.rt <= 0 || this.rt >= this.hl)) this.s.rt = this.s.rt * -1; else if (this.rt >= this.hl) this.reset(); var e = 1 - this.rt / this.hl; con.beginPath(); con.arc(this.x, this.y, this.r, 0, Math.PI * 2, true); con.closePath(); var t = this.r * e; g = con.createRadialGradient(this.x, this.y, 0, this.x, this.y, t <= 0 ? 1 : t); g.addColorStop(0, "rgba(255,255,255," + e + ")"); g.addColorStop(this.stop, "rgba(77,101,181," + e * .6 + ")"); g.addColorStop(1, "rgba(77,101,181,0)"); con.fillStyle = g; con.fill() }; this.move = function () { WIDTH = window.innerWidth; HEIGHT = window.innerHeight; this.x += this.rt / this.hl * this.dx; this.y += this.rt / this.hl * this.dy; if (this.x > WIDTH || this.x < 0) this.dx *= -1; if (this.y > HEIGHT || this.y < 0) this.dy *= -1 }; this.getX = function () { return this.x }; this.getY = function () { return this.y } } var WIDTH; var HEIGHT; var canvas; var con; var g; var pxs = new Array; var rint = 60; $(document).ready(function () { WIDTH = "100%"; HEIGHT = "100%"; $("#container").width(WIDTH).height(HEIGHT); WIDTH = window.innerWidth; HEIGHT = window.innerHeight; canvas = document.getElementById("pixie"); $(canvas).attr("width", WIDTH).attr("height", HEIGHT); con = canvas.getContext("2d"); for (var e = 0; e < 100; e++) { pxs[e] = new Circle; pxs[e].reset() } setInterval(draw, rint) }); $(".services .header2 .service-header").hover(function () { var e = $(this); e.find("h3").hide(); $(this).parent().find(".header-bg").stop(true, true).animate({ width: "100%" }, "fast", function () { e.find("h3").addClass("active").fadeIn("fast") }) }, function () { var e = $(this); e.find("h3").hide(); e.parent().find(".header-bg").stop(true, true).animate({ width: 70 }, "fast", function () { e.find("h3").removeClass("active").fadeIn("fast") }) })
+		var codeToName = {
+			"PG": "Papua New Guinea",
+			"MQ": "Martinique",
+			"MK": "North Macedonia",
+			"CN": "China",
+			"CW": "Curaçao",
+			"MX": "Mexico",
+			"HT": "Haiti",
+			"TH": "Thailand",
+			"MY": "Malaysia",
+			"UM": "United States Minor Outlying Islands",
+			"LB": "Lebanon",
+			"CU": "Cuba",
+			"AG": "Antigua and Barbuda",
+			"IS": "Iceland",
+			"AF": "Afghanistan",
+			"PY": "Paraguay",
+			"IN": "India",
+			"UA": "Ukraine",
+			"SC": "Seychelles",
+			"GN": "Guinea",
+			"ZM": "Zambia",
+			"DZ": "Algeria",
+			"BH": "Bahrain",
+			"MM": "Myanmar",
+			"ET": "Ethiopia",
+			"SS": "South Sudan",
+			"MT": "Malta",
+			"MW": "Malawi",
+			"JO": "Jordan",
+			"BB": "Barbados",
+			"ID": "Indonesia",
+			"KG": "Kyrgyzstan",
+			"BA": "Bosnia and Herzegovina",
+			"CZ": "Czechia",
+			"FJ": "Fiji",
+			"LT": "Lithuania",
+			"SO": "Somalia",
+			"GE": "Georgia",
+			"ZW": "Zimbabwe",
+			"EC": "Ecuador",
+			"GI": "Gibraltar",
+			"OM": "Oman",
+			"HK": "Hong Kong",
+			"YE": "Yemen",
+			"CV": "Cape Verde",
+			"PE": "Peru",
+			"PR": "Puerto Rico",
+			"AU": "Australia",
+			"MN": "Mongolia",
+			"SV": "El Salvador",
+			"UZ": "Uzbekistan",
+			"BI": "Burundi",
+			"KH": "Cambodia",
+			"AQ": "Antarctica",
+			"EG": "Egypt",
+			"UY": "Uruguay",
+			"GT": "Guatemala",
+			"ES": "Spain",
+			"SN": "Senegal",
+			"QA": "Qatar",
+			"EE": "Estonia",
+			"NP": "Nepal",
+			"CY": "Cyprus",
+			"ME": "Montenegro",
+			"BO": "Bolivia",
+			"PT": "Portugal",
+			"CF": "Central African Republic",
+			"CH": "Switzerland",
+			"SI": "Slovenia",
+			"AE": "United Arab Emirates",
+			"CG": "Republic of the Congo",
+			"GB": "United Kingdom",
+			"CA": "Canada",
+			"BR": "Brazil",
+			"CM": "Cameroon",
+			"BW": "Botswana",
+			"KR": "South Korea",
+			"SG": "Singapore",
+			"NZ": "New Zealand",
+			"IE": "Ireland",
+			"GH": "Ghana",
+			"BJ": "Benin",
+			"AM": "Armenia",
+			"NR": "Nauru",
+			"TG": "Togo",
+			"DM": "Dominica",
+			"KM": "Comoros",
+			"IL": "Israel",
+			"KN": "Saint Kitts and Nevis",
+			"GY": "Guyana",
+			"PS": "Palestine",
+			"YT": "Mayotte",
+			"SY": "Syria",
+			"TW": "Taiwan",
+			"US": "United States",
+			"TC": "Turks and Caicos Islands",
+			"AR": "Argentina",
+			"CD": "DR Congo",
+			"VE": "Venezuela",
+			"AW": "Aruba",
+			"IT": "Italy",
+			"AT": "Austria",
+			"SD": "Sudan",
+			"BZ": "Belize",
+			"BM": "Bermuda",
+			"SK": "Slovakia",
+			"ML": "Mali",
+			"CI": "Ivory Coast",
+			"FI": "Finland",
+			"CL": "Chile",
+			"GL": "Greenland",
+			"LK": "Sri Lanka",
+			"GP": "Guadeloupe",
+			"GF": "French Guiana",
+			"WF": "Wallis and Futuna",
+			"GG": "Guernsey",
+			"XK": "Kosovo",
+			"MZ": "Mozambique",
+			"CO": "Colombia",
+			"IO": "British Indian Ocean Territory",
+			"RW": "Rwanda",
+			"MU": "Mauritius",
+			"FR": "France",
+			"VU": "Vanuatu",
+			"AZ": "Azerbaijan",
+			"TJ": "Tajikistan",
+			"SR": "Suriname",
+			"AO": "Angola",
+			"PL": "Poland",
+			"SL": "Sierra Leone",
+			"NC": "New Caledonia",
+			"PF": "French Polynesia",
+			"RU": "Russia",
+			"DK": "Denmark",
+			"TF": "French Southern and Antarctic Lands",
+			"LV": "Latvia",
+			"NL": "Netherlands",
+			"BT": "Bhutan",
+			"MD": "Moldova",
+			"LU": "Luxembourg",
+			"PM": "Saint Pierre and Miquelon",
+			"IM": "Isle of Man",
+			"MC": "Monaco",
+			"MA": "Morocco",
+			"PK": "Pakistan",
+			"ZA": "South Africa",
+			"GR": "Greece",
+			"JM": "Jamaica",
+			"LI": "Liechtenstein",
+			"BE": "Belgium",
+			"RO": "Romania",
+			"IQ": "Iraq",
+			"VA": "Vatican City",
+			"AD": "Andorra",
+			"VC": "Saint Vincent and the Grenadines",
+			"BY": "Belarus",
+			"RS": "Serbia",
+			"GD": "Grenada",
+			"NA": "Namibia",
+			"MO": "Macau",
+			"BF": "Burkina Faso",
+			"GU": "Guam",
+			"KE": "Kenya",
+			"UG": "Uganda",
+			"LC": "Saint Lucia",
+			"AL": "Albania",
+			"TM": "Turkmenistan",
+			"TN": "Tunisia",
+			"DE": "Germany",
+			"BQ": "Caribbean Netherlands",
+			"SA": "Saudi Arabia",
+			"BS": "Bahamas",
+			"DO": "Dominican Republic",
+			"RE": "Réunion",
+			"VN": "Vietnam",
+			"IR": "Iran",
+			"TZ": "Tanzania",
+			"NO": "Norway",
+			"BD": "Bangladesh",
+			"JP": "Japan",
+			"KW": "Kuwait",
+			"HR": "Croatia",
+			"FO": "Faroe Islands",
+			"PA": "Panama",
+			"HN": "Honduras",
+			"AS": "American Samoa",
+			"FK": "Falkland Islands",
+			"SH": "Saint Helena, Ascension and Tristan da Cunha",
+			"TR": "Turkey",
+			"LY": "Libya",
+			"CR": "Costa Rica",
+			"SM": "San Marino",
+			"PH": "Philippines",
+			"CK": "Cook Islands",
+			"VI": "United States Virgin Islands",
+			"NI": "Nicaragua",
+			"BG": "Bulgaria",
+			"HU": "Hungary",
+			"BN": "Brunei",
+			"KZ": "Kazakhstan",
+			"JE": "Jersey",
+			"TO": "Tonga",
+			"SZ": "Eswatini",
+			"KP": "North Korea",
+			"MG": "Madagascar",
+			"SE": "Sweden",
+			"NG": "Nigeria",
+			"TT": "Trinidad and Tobago"
+		}
+	</script>
+</body>
+</html>
