@@ -361,7 +361,7 @@
 		_ = setOps,
 		lastCountry = 0,
 		data; 
-		$.get("https://de1.api.radio-browser.info/json/countrycodes").done(function(res){ //https://cors-anywhere.herokuapp.com/http://cdn2.radio.garden/
+		$.get("https://at1.api.radio-browser.info/json/countrycodes").done(function(res){ //https://cors-anywhere.herokuapp.com/http://cdn2.radio.garden/
 			res.forEach(function(country){
 				$("#countries").append($("<option>", {text: codeToName[country.name], value: country.name})); // + " (" + country.stationcount + ")"
 			});
@@ -372,7 +372,7 @@
 
 		$('select').on("change", function(evt) {
 			$(".loading").show();
-			$.get('https://de1.api.radio-browser.info/json/stations/search?order=votes&reverse=true&codec=MP3&hidebroken=true&countrycode=' + evt.target.value).done(function(res) {
+			$.get('https://at1.api.radio-browser.info/json/stations/search?order=votes&reverse=true&codec=MP3&hidebroken=true&countrycode=' + evt.target.value).done(function(res) {
 				res.forEach(function(radio) {
 					radio.name = radio.name.trim().replace(/"/g,"'").replace(/\|/, "ǀ");
 					if(radio.bitrate > 1000) radio.bitrate /= 1000;
