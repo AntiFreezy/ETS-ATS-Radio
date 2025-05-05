@@ -166,6 +166,20 @@
 		  -webkit-box-shadow: rgba(255,255,255, 0.75) 1.5em 0 0 0, rgba(255,255,255, 0.75) 1.1em 1.1em 0 0, rgba(255,255,255, 0.75) 0 1.5em 0 0, rgba(255,255,255, 0.75) -1.1em 1.1em 0 0, rgba(255,255,255, 0.75) -1.5em 0 0 0, rgba(255,255,255, 0.75) -1.1em -1.1em 0 0, rgba(255,255,255, 0.75) 0 -1.5em 0 0, rgba(255,255,255, 0.75) 1.1em -1.1em 0 0;
 		box-shadow: rgba(255,255,255, 0.75) 1.5em 0 0 0, rgba(255,255,255, 0.75) 1.1em 1.1em 0 0, rgba(255,255,255, 0.75) 0 1.5em 0 0, rgba(255,255,255, 0.75) -1.1em 1.1em 0 0, rgba(255,255,255, 0.75) -1.5em 0 0 0, rgba(255,255,255, 0.75) -1.1em -1.1em 0 0, rgba(255,255,255, 0.75) 0 -1.5em 0 0, rgba(255,255,255, 0.75) 1.1em -1.1em 0 0;
 		}
+		.center {
+		  	position: absolute;
+	  	    top: 50%;
+	  	    left: 50%;
+	  	    width: 600px;
+	  	    line-height: 60px;
+	  	    margin-left: -300px;
+	  	    margin-top: -70px;
+	  	    text-align: center;
+	  	    z-index: 1000;
+	  	    background: rgba(0,0,0,0.63);
+	  	    font-size: 32px;
+	  	    color: #a94442;
+		}
 
 		/* Animation */
 
@@ -237,6 +251,7 @@
 	</style>
 </head>
 <body>
+	<div class="center"></div>
 	<div class="loading">Loading&#8230;</div>
 	<canvas id="pixie"></canvas>
 	<div id="info">
@@ -260,6 +275,7 @@
 			ru: {
 				info: '<p>Скачайте файл и поместите в папку: "<b>Документы\\Euro Truck Simulator 2</b>" с заменой.</p>',
 				loading: "Загрузка стран...",
+				loadFailed: 'Загрузка данных не удалась. Повторите попытку позже.',
 				edit: "Редактировать",
 				editing: "Редактирование списка",
 				download: "Скачать",
@@ -276,6 +292,7 @@
 			en:{
 				info: '<p>Download the file and put the file into the folder: "<b>Documents\\Euro Truck Simulator 2</b>".',
 				loading: "Country list is loading...",
+				loadFailed: "Data loading failed. Please try again later.",
 				edit: "Edit list",
 				editing: "Editing the list",
 				download: "Download",
@@ -360,19 +377,34 @@
 		selections = [],
 		_ = setOps,
 		lastCountry = 0,
-		data; 
-		$.get("https://all.api.radio-browser.info/json/countries").done(function(res){ //https://cors-anywhere.herokuapp.com/http://cdn2.radio.garden/
-			res.forEach(function(country){
-				$("#countries").append($("<option>", {text: country.name, value: country.iso_3166_1})); // + " (" + country.stationcount + ")"
+		data,
+		baseURL = 'https://enpoint.api.radio-browser.info',
+		endpoints = ['de1', 'de2', 'fi1', 'all'],
+		apiURL = '';
+
+		function loadCounties() {
+			if (endpoints.length == 0) {
+				$(".center").html(lang.loadFailed);
+				return;
+			}
+			apiURL = baseURL.replace('enpoint', endpoints.shift());
+			$.get(apiURL + "/json/countries").done(function(res){ //https://cors-anywhere.herokuapp.com/http://cdn2.radio.garden/
+				res.forEach(function(country){
+					$("#countries").append($("<option>", {text: country.name, value: country.iso_3166_1})); // + " (" + country.stationcount + ")"
+				});
+				$('select option:first')[0].textContent = lang.select;
+				$('select').select2();
+				$(".loading").hide();
+			}).fail(function(err) {
+				loadCounties();
 			});
-			$('select option:first')[0].textContent = lang.select;
-			$('select').select2();
-			$(".loading").hide();
-		});
+		}
+
+		loadCounties();
 
 		$('select').on("change", function(evt) {
 			$(".loading").show();
-			$.get('https://all.api.radio-browser.info/json/stations/search?order=votes&reverse=true&codec=MP3&hidebroken=true&countrycode=' + evt.target.value).done(function(res) {
+			$.get(apiURL + '/json/stations/search?order=votes&reverse=true&codec=MP3&hidebroken=true&countrycode=' + evt.target.value).done(function(res) {
 				res.forEach(function(radio) {
 					radio.name = radio.name.trim().replace(/"/g,"'").replace(/\|/, "ǀ");
 					if(radio.bitrate > 1000) radio.bitrate /= 1000;
