@@ -48,7 +48,12 @@
 						<select id="genre-select" multiple placeholder="Выберите жанры..." autocomplete="off"></select>
 						<div class="form-text text-light opacity-75" data-translate="genreHelpText">Можно выбрать несколько жанров.</div>
 					</div>
-					<!-- Новые кнопки-ссылки -->
+					<!-- Single Country Filter (НОВЫЙ БЛОК) -->
+					<div id="single-country-filter-container" class="mb-3" style="display: none;"> <!-- Скрыт по умолчанию -->
+						 <label for="single-country-filter" class="form-label text-light" data-translate="showOnlyCountryLabel">Показать только из:</label>
+						 <select id="single-country-filter" class="form-select form-select-sm bg-dark text-light border-secondary"></select>
+					</div>
+					<!-- Кнопки-ссылки -->
 					<a href="/ETS-ATS-Radio/old" target="_blank" class="btn btn-sm btn-outline-secondary ms-lg-auto"> <!-- ms-lg-auto прижмет их и язык вправо на больших экранах -->
 						<i class="bi bi-arrow-left-square me-1"></i><span data-translate="linkOldVersion">Старая версия</span>
 					</a>

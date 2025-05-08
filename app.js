@@ -18,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	const countrySelectElement = document.getElementById('country-select');
 	const searchInput = document.getElementById('search-input');
 	const genreSelectElement = document.getElementById('genre-select');
+	const singleCountryFilterContainer = document.getElementById('single-country-filter-container');
+	const singleCountryFilterElement = document.getElementById('single-country-filter');
 	const tableContainer = document.getElementById('table-container');
 	const selectionCountElement = document.getElementById('selection-count');
 	const downloadCountElement = document.getElementById('download-count');
@@ -37,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	const toastContainer = document.querySelector('.toast-container');
 
 	// Состояние приложения
+	let filterByCountryCode = "";
 	let tomSelectCountries = null;
 	let tomSelectGenres = null;
 	let allStations = [];
@@ -121,6 +124,8 @@ document.addEventListener('DOMContentLoaded', () => {
 			tableHeaderVotes: "Голоса",
 			filterTitle: "Фильтры",
 			countryLabel: "Страны:",
+			showOnlyCountryLabel: "Показать только из:",
+			allLoadedCountries: "Все загруженные ({count})",
 			countryHelpText: "Можно выбрать несколько стран.",
 			searchLabel: "Поиск по названию:",
 			genreLabel: "Жанры:",
@@ -155,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			AdultContemporary: "Современное взрослое (AC)",
 			OtherVarious: "Разное / Другое",
 			linkOldVersion: "Старая версия",
-            linkRadioEditor: "Редактор Радио",
+			linkRadioEditor: "Редактор Радио",
 		},
 		en: {
 			loading: "Loading...",
@@ -192,6 +197,8 @@ document.addEventListener('DOMContentLoaded', () => {
 			tableHeaderVotes: "Votes",
 			filterTitle: "Filters",
 			countryLabel: "Countries:",
+			showOnlyCountryLabel: "Show only from:",
+			allLoadedCountries: "All Loaded ({count})",
 			countryHelpText: "You can select multiple countries.",
 			searchLabel: "Search by name:",
 			genreLabel: "Genres:",
@@ -226,7 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			AdultContemporary: "Adult Contemporary",
 			OtherVarious: "Other / Various",
 			linkOldVersion: "Old Version",
-            linkRadioEditor: "Radio Editor",
+			linkRadioEditor: "Radio Editor",
 		}
 	};
 
@@ -433,10 +440,61 @@ document.addEventListener('DOMContentLoaded', () => {
 			allStations = finalProcessAndSort(combined);
 			selectedStationIds.clear();
 			currentPage = 1;
+			filterByCountryCode = "";
 			updateGenreFilter();
 		}
 		lastSelectedCountries = [...currentSelection];
+		updateSingleCountryFilterOptions();
 		applyFiltersAndRenderTable();
+	}
+
+	/**
+	 * Обновляет опции и видимость одиночного фильтра стран.
+	 */
+	function updateSingleCountryFilterOptions() {
+		const T = translations[currentLanguage];
+		const loadedCountries = lastSelectedCountries; // Берем из состояния основного селектора
+
+		singleCountryFilterElement.innerHTML = ''; // Очищаем старые опции
+
+		if (loadedCountries.length > 1) {
+			// Показываем фильтр, если загружено больше одной страны
+			singleCountryFilterContainer.style.display = '';
+
+			// Добавляем опцию "Все загруженные"
+			const allOption = document.createElement('option');
+			allOption.value = ""; // Пустое значение для "всех"
+			allOption.textContent = T.allLoadedCountries.replace('{count}', loadedCountries.length);
+			singleCountryFilterElement.appendChild(allOption);
+
+			// Добавляем опции для каждой загруженной страны
+			// Получаем имена из опций TomSelect для красоты
+			const countryOptions = loadedCountries.map(code => {
+				const tomOption = tomSelectCountries.options[code];
+				// Убираем счетчик станций из имени для фильтра
+				const name = tomOption ? tomOption.text.replace(/\s\(\d+\)$/, '') : code;
+				return {
+					code: code,
+					name: name
+				};
+			}).sort((a, b) => a.name.localeCompare(b.name, currentLanguage)); // Сортируем по имени
+
+			countryOptions.forEach(country => {
+				const option = document.createElement('option');
+				option.value = country.code;
+				option.textContent = country.name;
+				singleCountryFilterElement.appendChild(option);
+			});
+
+			singleCountryFilterElement.value = filterByCountryCode; // Восстанавливаем предыдущее значение, если оно валидно
+			singleCountryFilterElement.disabled = false;
+
+		} else {
+			// Скрываем фильтр, если загружена одна страна или ни одной
+			singleCountryFilterContainer.style.display = 'none';
+			singleCountryFilterElement.disabled = true;
+			filterByCountryCode = ""; // Сбрасываем фильтр, если он стал не нужен
+		}
 	}
 
 	async function fetchStationsForCountry(countryCode) {
@@ -487,7 +545,7 @@ document.addEventListener('DOMContentLoaded', () => {
 					name: (s.name || 'Unknown').trim().replace(/"/g, "'").replace(/\|/g, "ǀ"),
 					url: u,
 					genre: (s.tags || 'N/A').split(",").map(t => t.trim()).filter(t => t).slice(0, 3).join(', '),
-					country: s.countrycode || 'N/A',
+					country: s.countrycode.trim().toUpperCase() || 'N/A',
 					language: lang,
 					bitrate: s.bitrate > 1000 ? Math.round(s.bitrate / 1000) : (s.bitrate || 0),
 					votes: s.votes || 0
@@ -569,7 +627,9 @@ document.addEventListener('DOMContentLoaded', () => {
 						return categoryKeyOfTag && selectedCategoryKeys.includes(categoryKeyOfTag);
 					});
 				}
-				return nameOk && genreOk;
+				const countryOk = !filterByCountryCode || s.country === filterByCountryCode;
+
+				return nameOk && genreOk && countryOk;
 			});
 		}
 		if (sortColumn) {
@@ -1023,6 +1083,11 @@ document.addEventListener('DOMContentLoaded', () => {
 			}
 		});
 		updateSelectionInfo();
+	});
+	singleCountryFilterElement.addEventListener('change', (event) => {
+		filterByCountryCode = event.target.value; // Обновляем состояние
+		currentPage = 1; // Сбрасываем пагинацию
+		applyFiltersAndRenderTable(); // Применяем фильтры
 	});
 	selectAllFilteredBtn.addEventListener('click', () => {
 		if (!filteredStations?.length) return;

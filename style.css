@@ -647,6 +647,35 @@ a:hover {
 	opacity: 1;
 }
 
+/* --- Single Country Filter Select --- */
+#single-country-filter {
+	background-color: rgba(255, 255, 255, 0.08) !important; /* Тот же фон, что у TomSelect */
+	border: 1px solid var(--bs-border-color) !important;
+	color: var(--bs-body-color);
+	font-size: 0.875rem;
+	/* Стили для стрелки (могут зависеть от браузера, используем стандарт Bootstrap) */
+	 background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23dee2e6' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+	 background-repeat: no-repeat;
+	 background-position: right 0.75rem center;
+	 background-size: 16px 12px;
+	 padding-right: 2.5rem; /* Оставить место для стрелки */
+}
+#single-country-filter:focus {
+	 border-color: #86b7fe !important;
+	 box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+	 outline: 0;
+}
+#single-country-filter option {
+	 background-color: var(--bs-secondary-bg); /* Фон опций в выпадающем списке */
+	 color: var(--bs-body-color);
+}
+#single-country-filter:disabled {
+	 background-color: rgba(255, 255, 255, 0.05) !important;
+	 opacity: 0.65;
+	 cursor: not-allowed;
+}
+
+
 /* Tom select placeholder handled by .ts-input::placeholder */
 
 /* --- Volume Slider --- */
